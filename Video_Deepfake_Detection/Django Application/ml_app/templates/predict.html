@@ -1,0 +1,595 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+{% if no_faces %}
+<div class="container" style="max-width: 600px; margin-top: 80px; text-align: center;">
+  <div style="margin-bottom: 24px;">
+    <img src="{% static 'images/logo1.png' %}" alt="Sentry Logo" style="height: 60px;">
+  </div>
+  <div class="cyber-card alert-fake" style="padding: 48px 32px;">
+    <div style="font-size: 2.5rem; color: var(--status-fake); margin-bottom: 16px;">⚠</div>
+    <h3 style="font-family: var(--font-heading); font-weight: 700; color: #fff; margin-bottom: 12px; font-size: 1.5rem;">
+        No Faces Detected
+    </h3>
+    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 30px; font-size: 0.95rem;">
+        No facial signatures were found in the uploaded stream. Please ensure the subject's face is clearly visible.
+    </p>
+    <a href="{% url 'ml_app:home' %}" class="btn-secondary" style="text-decoration: none;">
+        Return to Upload
+    </a>
+  </div>
+</div>
+
+{% else %}
+<div class="container" style="max-width: 1200px;">
+
+  <!-- ── Page Header ─────────────────────────────────────────────── -->
+  <div style="display:flex; justify-content:space-between; align-items:center;
+              border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:16px;
+              margin-bottom:28px; margin-top:8px;">
+    <div>
+      <h1 style="font-family:var(--font-heading); font-weight:800; font-size:1.85rem;
+                 color:#fff; margin:0; letter-spacing:-0.01em;">
+        Analysis Report
+      </h1>
+      <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">
+        File: <span style="color:var(--accent-blue); font-weight:600;">{{ video_file_name }}</span>
+        &nbsp;&bull;&nbsp; Scan time: <span style="color:var(--text-primary);">{{ scan_duration }}s</span>
+      </div>
+    </div>
+
+    <!-- Combined verdict chip -->
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="text-align:right;">
+        <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary);
+                    text-transform:uppercase; letter-spacing:0.05em;">Overall</div>
+        <div style="font-family:var(--font-heading); font-weight:800; font-size:1.6rem;
+                    color:{% if combined_verdict == 'REAL' %}var(--status-real){% else %}var(--status-fake){% endif %};">
+          {{ combined_confidence }}%
+        </div>
+      </div>
+      <span class="status-badge {% if combined_verdict == 'REAL' %}real{% else %}fake{% endif %}"
+            style="font-size:0.8rem; padding:6px 14px;">
+        {% if combined_verdict == 'REAL' %}Authentic{% else %}AI Synthetic{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Tab Navbar ──────────────────────────────────────────────── -->
+  <div style="display:flex; gap:0; margin-bottom:28px; background:rgba(255,255,255,0.03);
+              border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:6px;">
+
+    <button id="tab-btn-video" onclick="switchTab('video')"
+            style="flex:1; padding:12px 20px; border:none; border-radius:8px; cursor:pointer;
+                   font-family:var(--font-heading); font-weight:700; font-size:1rem;
+                   letter-spacing:0.03em; display:flex; align-items:center;
+                   justify-content:center; gap:10px; transition:all 0.2s;
+                   background:var(--accent-blue); color:#fff;
+                   box-shadow:0 2px 10px rgba(59,130,246,0.25);">
+      <!-- Camera icon -->
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.897L15 14M4 8h11a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4a2 2 0 012-2z"/>
+      </svg>
+      Video Analysis
+      <span id="tab-badge-video"
+            class="status-badge {% if video_verdict == 'REAL' %}real{% else %}fake{% endif %}"
+            style="font-size:0.7rem; padding:2px 8px; margin-left:4px;">
+        {{ video_verdict }}
+      </span>
+    </button>
+
+    <button id="tab-btn-audio" onclick="switchTab('audio')"
+            style="flex:1; padding:12px 20px; border:none; border-radius:8px; cursor:pointer;
+                   font-family:var(--font-heading); font-weight:700; font-size:1rem;
+                   letter-spacing:0.03em; display:flex; align-items:center;
+                   justify-content:center; gap:10px; transition:all 0.2s;
+                   background:transparent; color:var(--text-secondary);">
+      <!-- Mic icon -->
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M12 3a4 4 0 014 4v5a4 4 0 01-8 0V7a4 4 0 014-4z"/>
+      </svg>
+      Audio Analysis
+      <span id="tab-badge-audio"
+            class="status-badge {% if audio_verdict == 'REAL' %}real{% else %}fake{% endif %}"
+            style="font-size:0.7rem; padding:2px 8px; margin-left:4px;">
+        {{ audio_verdict }}
+      </span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 1 — VIDEO OUTPUT
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="tab-video">
+
+    <!-- Verdict summary -->
+    <div class="cyber-card {% if video_verdict == 'FAKE' %}alert-fake{% endif %}"
+         style="padding:20px; margin-bottom:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;
+                  flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="font-size:0.7rem; text-transform:uppercase; font-weight:600;
+                      color:var(--text-secondary); letter-spacing:0.05em; margin-bottom:4px;">
+            Visual Track Classification
+          </div>
+          <p style="color:var(--text-secondary); font-size:0.875rem; margin:0; line-height:1.5;
+                    max-width:560px;">
+            {% if video_verdict == "FAKE" %}
+              Anomalies detected in facial landmark sequences. High temporal inconsistency
+              across biometric keypoints — consistent with generative adversarial synthesis.
+            {% else %}
+              Frame-level biometric analysis confirmed natural micro-expressions and consistent
+              lighting vectors. No artifacts of AI face generation were found.
+            {% endif %}
+          </p>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary);
+                      text-transform:uppercase; letter-spacing:0.05em;">Confidence</div>
+          <div style="font-family:var(--font-heading); font-weight:800; font-size:2.5rem;
+                      color:{% if video_verdict == 'REAL' %}var(--status-real){% else %}var(--status-fake){% endif %};">
+            {{ video_confidence }}%
+          </div>
+          <span class="status-badge {% if video_verdict == 'REAL' %}real{% else %}fake{% endif %}">
+            {{ video_verdict }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="metric-row" style="margin-top:20px; margin-bottom:0;">
+        <div class="metric-label">
+          <span>Visual Verification Score</span>
+          <span style="color:var(--text-bright); font-weight:600;">{{ video_confidence }}%</span>
+        </div>
+        <div class="metric-progress-bg" style="height:10px;">
+          <div class="metric-progress-fill {% if video_verdict == 'FAKE' %}fake-fill{% endif %}"
+               style="width:{{ video_confidence }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width video player -->
+    <div class="cyber-card" style="padding:20px; margin-bottom:24px;">
+      <div style="font-size:0.75rem; text-transform:uppercase; font-weight:600;
+                  color:var(--text-secondary); font-family:var(--font-heading);
+                  margin-bottom:14px; letter-spacing:0.05em;">
+        Video Stream
+      </div>
+      <div class="video-glow-container" style="max-height:520px;">
+        <video id="predict-media" controls style="width:100%; display:block; max-height:520px; object-fit:contain;">
+          <source src="{{ MEDIA_URL }}{{ original_video }}" type="video/mp4"/>
+        </video>
+      </div>
+    </div>
+
+    <!-- Full-width extracted frames -->
+    <div class="cyber-card" style="padding:20px; margin-bottom:24px;">
+      <div style="font-size:0.75rem; text-transform:uppercase; font-weight:600;
+                  color:var(--text-secondary); font-family:var(--font-heading);
+                  margin-bottom:14px; letter-spacing:0.05em;">
+        Temporal Frame Extractions
+      </div>
+      <div class="horizontal-scroll-container">
+        {% for each_image in preprocessed_images %}
+        <div class="frame-thumbnail-wrapper">
+          <img src="/static/{{ each_image }}" class="frame-thumbnail" alt="Frame">
+          <div class="frame-badge">F{{ forloop.counter }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Full-width face crops -->
+    <div class="cyber-card" style="padding:20px; margin-bottom:24px;">
+      <div style="font-size:0.75rem; text-transform:uppercase; font-weight:600;
+                  color:var(--text-secondary); font-family:var(--font-heading);
+                  margin-bottom:14px; letter-spacing:0.05em;">
+        Biometric Face Crops
+      </div>
+      <div class="horizontal-scroll-container">
+        {% for each_image in faces_cropped_images %}
+          {% if each_image %}
+          <div class="frame-thumbnail-wrapper">
+            <img src="/static/{{ each_image }}" class="frame-thumbnail biometric-thumbnail" alt="Face">
+            <div class="frame-badge">Face {{ forloop.counter }}</div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /tab-video -->
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 2 — AUDIO OUTPUT
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="tab-audio" style="display:none;">
+
+    <!-- Verdict summary -->
+    <div class="cyber-card {% if audio_verdict == 'FAKE' %}alert-fake{% endif %}"
+         style="padding:20px; margin-bottom:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;
+                  flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="font-size:0.7rem; text-transform:uppercase; font-weight:600;
+                      color:var(--text-secondary); letter-spacing:0.05em; margin-bottom:4px;">
+            Vocal Track Classification
+          </div>
+          <p style="color:var(--text-secondary); font-size:0.875rem; margin:0; line-height:1.5;
+                    max-width:560px;">
+            {% if audio_verdict == "FAKE" %}
+              Spectral envelope analysis revealed pitch discontinuities and synthesised harmonic
+              artefacts. The vocal signature matches known neural text-to-speech generator patterns.
+            {% else %}
+              Natural vocal tract resonance confirmed. No cloning artefacts, abnormal pitch shifting,
+              or synthetic phoneme sequences were detected across the audio timeline.
+            {% endif %}
+          </p>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary);
+                      text-transform:uppercase; letter-spacing:0.05em;">Confidence</div>
+          <div style="font-family:var(--font-heading); font-weight:800; font-size:2.5rem;
+                      color:{% if audio_verdict == 'REAL' %}var(--status-real){% else %}var(--status-fake){% endif %};">
+            {{ audio_confidence }}%
+          </div>
+          <span class="status-badge {% if audio_verdict == 'REAL' %}real{% else %}fake{% endif %}">
+            {{ audio_verdict }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="metric-row" style="margin-top:20px; margin-bottom:0;">
+        <div class="metric-label">
+          <span>Vocal Verification Score</span>
+          <span style="color:var(--text-bright); font-weight:600;">{{ audio_confidence }}%</span>
+        </div>
+        <div class="metric-progress-bg" style="height:10px;">
+          <div class="metric-progress-fill {% if audio_verdict == 'FAKE' %}fake-fill{% endif %}"
+               style="width:{{ audio_confidence }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waveform card -->
+    <div class="cyber-card" style="padding:24px; margin-bottom:24px;">
+      <!-- Header -->
+      <h3 class="cyber-subheader" style="margin:0 0 18px 0; font-size:1.05rem;">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%;
+                     background:var(--accent-purple);"></span>
+        Vocal Waveform Inspection
+      </h3>
+
+      <!-- Hidden native audio player for background control -->
+      <audio id="audio-scanner-player"
+             src="{{ MEDIA_URL }}{{ original_audio }}"
+             style="display:none;">
+      </audio>
+
+      <!-- Integrated premium Waveform Visualizer panel -->
+      <div class="audio-visual-panel" style="padding: 20px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; margin-top: 0;">
+        <!-- Header area with play button and track title -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 14px; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <button id="waveform-play-toggle" class="audio-play-button" style="width: 42px; height: 42px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border: none; padding: 0; background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo)); color: white; border-radius: 50%; cursor: pointer; transition: all 0.2s;">
+              &#9658;
+            </button>
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-bright);">
+                Vocal Timeline Inspection
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                Extracted Audio: <span style="color: var(--accent-purple); font-weight: 500;">{{ video_file_name }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; background: rgba(255, 255, 255, 0.05); padding: 4px 10px; border-radius: 6px;">
+            Red bars = suspected synthetic segments
+          </div>
+        </div>
+
+        <!-- Waveform Visualizer -->
+        <div class="waveform-scrubber-overlay" style="position:relative;">
+          <div class="waveform-playhead" id="waveform-playhead"></div>
+          <div class="waveform-timeline" id="waveform-bars-grid" style="height:90px; margin:0;">
+            {% for amp in audio_waveform %}
+            <div class="waveform-bar {% if forloop.counter0 in audio_suspicious %}suspicious-bar{% endif %}"
+                 style="height:calc({{ amp }} * 72px + 4px);"
+                 data-bar-index="{{ forloop.counter0 }}"></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div style="display:flex; gap:20px; margin-top:16px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-secondary);">
+          <span style="width:10px; height:10px; border-radius:2px;
+                       background:rgba(255,255,255,0.12); display:inline-block;"></span>
+          Normal vocal region
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-secondary);">
+          <span style="width:10px; height:10px; border-radius:2px;
+                       background:var(--status-fake); display:inline-block;"></span>
+          Suspected synthetic segment
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-secondary);">
+          <span style="width:10px; height:10px; border-radius:2px;
+                       background:var(--accent-blue); display:inline-block;"></span>
+          Playback position
+        </div>
+      </div>
+    </div>
+
+    <!-- Anomaly info card -->
+    <div class="cyber-card" style="padding:20px; margin-bottom:24px;">
+      <h3 class="cyber-subheader" style="font-size:1.05rem; margin-bottom:16px;">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%;
+                     background:var(--accent-purple);"></span>
+        Spectral Findings
+      </h3>
+
+      {% if audio_verdict == "FAKE" %}
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15);
+                    padding:12px 16px; border-radius:10px; font-size:0.85rem;">
+          <div>
+            <div style="color:var(--status-fake); font-weight:600; margin-bottom:2px;">
+              Synthetic Phoneme Signatures
+            </div>
+            <div style="color:var(--text-secondary);">
+              Irregular pitch envelope detected — matches TTS generation patterns
+            </div>
+          </div>
+          <span class="status-badge fake" style="font-size:0.7rem; padding:3px 8px; white-space:nowrap;">
+            DETECTED
+          </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15);
+                    padding:12px 16px; border-radius:10px; font-size:0.85rem;">
+          <div>
+            <div style="color:var(--status-fake); font-weight:600; margin-bottom:2px;">
+              Harmonic Discontinuities
+            </div>
+            <div style="color:var(--text-secondary);">
+              Abrupt spectral transitions inconsistent with natural speech formants
+            </div>
+          </div>
+          <span class="status-badge fake" style="font-size:0.7rem; padding:3px 8px; white-space:nowrap;">
+            DETECTED
+          </span>
+        </div>
+      </div>
+      {% else %}
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.15);
+                    padding:12px 16px; border-radius:10px; font-size:0.85rem;">
+          <div>
+            <div style="color:var(--status-real); font-weight:600; margin-bottom:2px;">
+              No Synthetic Patterns Found
+            </div>
+            <div style="color:var(--text-secondary);">
+              Spectral density and pitch contours match natural human voice profiles
+            </div>
+          </div>
+          <span class="status-badge real" style="font-size:0.7rem; padding:3px 8px; white-space:nowrap;">
+            CLEAR
+          </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.15);
+                    padding:12px 16px; border-radius:10px; font-size:0.85rem;">
+          <div>
+            <div style="color:var(--status-real); font-weight:600; margin-bottom:2px;">
+              Vocal Tract Resonance Verified
+            </div>
+            <div style="color:var(--text-secondary);">
+              Formant transitions and co-articulation align with organic phonation
+            </div>
+          </div>
+          <span class="status-badge real" style="font-size:0.7rem; padding:3px 8px; white-space:nowrap;">
+            CLEAR
+          </span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /tab-audio -->
+
+  <!-- Analyze another button -->
+  <div style="text-align:center; margin-top:36px; margin-bottom:16px;">
+    <a href="{% url 'ml_app:home' %}" class="submit-btn"
+       style="text-decoration:none; display:inline-block; width:auto; padding:14px 40px;">
+      Analyze Another File
+    </a>
+  </div>
+
+</div><!-- /container -->
+{% endif %}
+
+{% endblock %}
+
+
+{% block js_cripts %}
+<script src="{% static 'js/face-api.min.js' %}"></script>
+<script>
+/* ── Tab Switching ─────────────────────────────────────────── */
+function switchTab(tab) {
+    const isVideo = tab === 'video';
+
+    // panels
+    document.getElementById('tab-video').style.display = isVideo ? 'block' : 'none';
+    document.getElementById('tab-audio').style.display = isVideo ? 'none'  : 'block';
+
+    // active button styles
+    const btnVideo = document.getElementById('tab-btn-video');
+    const btnAudio = document.getElementById('tab-btn-audio');
+
+    if (isVideo) {
+        btnVideo.style.background    = 'var(--accent-blue)';
+        btnVideo.style.color         = '#fff';
+        btnVideo.style.boxShadow     = '0 2px 10px rgba(59,130,246,0.25)';
+        btnAudio.style.background    = 'transparent';
+        btnAudio.style.color         = 'var(--text-secondary)';
+        btnAudio.style.boxShadow     = 'none';
+    } else {
+        btnAudio.style.background    = 'var(--accent-purple)';
+        btnAudio.style.color         = '#fff';
+        btnAudio.style.boxShadow     = '0 2px 10px rgba(139,92,246,0.25)';
+        btnVideo.style.background    = 'transparent';
+        btnVideo.style.color         = 'var(--text-secondary)';
+        btnVideo.style.boxShadow     = 'none';
+    }
+}
+
+/* ── Audio Waveform Player ─────────────────────────────────── */
+$(document).ready(function () {
+    const audioPlayer = document.getElementById('audio-scanner-player');
+    const playToggle  = document.getElementById('waveform-play-toggle');
+    const waveformGrid = document.getElementById('waveform-bars-grid');
+
+    let animInterval;
+
+    function updatePlayState(playing) {
+        if (playToggle) {
+            playToggle.innerHTML = playing ? '&#9646;&#9646;' : '&#9658;';
+        }
+        if (playing) {
+            startWaveform();
+        } else {
+            stopWaveform();
+        }
+    }
+
+    if (playToggle && audioPlayer) {
+        playToggle.addEventListener('click', function () {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+    }
+
+    if (audioPlayer) {
+        audioPlayer.addEventListener('play', function () {
+            updatePlayState(true);
+        });
+
+        audioPlayer.addEventListener('pause', function () {
+            updatePlayState(false);
+        });
+
+        audioPlayer.addEventListener('ended', function () {
+            updatePlayState(false);
+            $('#waveform-playhead').css('left', '0%');
+            $('.waveform-bar').removeClass('active-bar');
+        });
+    }
+
+    function startWaveform() {
+        stopWaveform();
+        const bars = $('.waveform-bar');
+        animInterval = setInterval(() => {
+            if (audioPlayer && audioPlayer.duration > 0) {
+                const ratio    = audioPlayer.currentTime / audioPlayer.duration;
+                const activeIdx = Math.floor(ratio * bars.length);
+                $('#waveform-playhead').css('left', (ratio * 100) + '%');
+                bars.each(function (i) {
+                    if (i <= activeIdx) $(this).addClass('active-bar');
+                    else                $(this).removeClass('active-bar');
+                });
+            }
+        }, 100);
+    }
+
+    function stopWaveform() {
+        if (animInterval) {
+            clearInterval(animInterval);
+        }
+    }
+
+    if (waveformGrid && audioPlayer) {
+        waveformGrid.style.cursor = 'pointer';
+        waveformGrid.addEventListener('click', function (e) {
+            const rect = waveformGrid.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const width = rect.right - rect.left;
+            const ratio = Math.max(0, Math.min(1, x / width));
+            if (audioPlayer.duration > 0) {
+                audioPlayer.currentTime = ratio * audioPlayer.duration;
+                if (audioPlayer.paused) {
+                    const bars = $('.waveform-bar');
+                    const activeIdx = Math.floor(ratio * bars.length);
+                    $('#waveform-playhead').css('left', (ratio * 100) + '%');
+                    bars.each(function (i) {
+                        if (i <= activeIdx) $(this).addClass('active-bar');
+                        else                $(this).removeClass('active-bar');
+                    });
+                }
+            }
+        });
+    }
+
+    /* ── Face-API live overlay on video ──────────────────────── */
+    Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri('/static/json'),
+        faceapi.nets.tinyFaceDetector.loadFromUri('/static/json')
+    ]);
+
+    const video = document.getElementById('predict-media');
+    let detectionTimeout;
+
+    video.addEventListener('playing', () => {
+        let canvas;
+        if ($('canvas').length < 1) {
+            canvas = faceapi.createCanvasFromMedia(video);
+            canvas.style.top  = video.offsetTop  + 'px';
+            canvas.style.left = video.offsetLeft + 'px';
+            document.body.append(canvas);
+        }
+        const displaySize = { width: video.clientWidth, height: video.clientHeight };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        detectionTimeout = setInterval(async () => {
+            const detections = await faceapi.detectAllFaces(video);
+            const resized = faceapi.resizeResults(detections, displaySize);
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.top  = video.offsetTop  + 'px';
+            canvas.style.left = video.offsetLeft + 'px';
+
+            const verdict = '{{ combined_verdict }}';
+            const conf    = '{{ combined_confidence }}';
+            resized.forEach((r, i) => {
+                const opts = {
+                    label: 'Sentry: ' + (verdict === 'REAL' ? 'Authentic' : 'Synthetic') + ' (' + conf + '%)',
+                    boxColor: verdict === 'REAL' ? '#10b981' : '#ef4444'
+                };
+                new faceapi.draw.DrawBox(resized[i].box, opts).draw(canvas);
+            });
+        }, 100);
+    });
+
+    video.addEventListener('paused', () => clearTimeout(detectionTimeout));
+
+    window.addEventListener('resize', () => {
+        const canvas = $('canvas')[0];
+        if (canvas) {
+            canvas.style.top  = video.offsetTop  + 'px';
+            canvas.style.left = video.offsetLeft + 'px';
+            faceapi.matchDimensions(canvas, { width: video.clientWidth, height: video.clientHeight });
+        }
+    });
+});
+</script>
+{% endblock %}

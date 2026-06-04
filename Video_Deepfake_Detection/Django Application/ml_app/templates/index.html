@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <!-- Form Upload Section -->
+    <div class="upload-wrapper" id="form-container">
+        <!-- Logo -->
+        <div class="upload-logo" style="margin-bottom: 24px; text-align: center;">
+            <img src="{% static 'images/logo1.png' %}" alt="Sentry Logo" style="height: 70px; width: auto; opacity: 0.95;">
+        </div>
+
+        <h2 style="font-family: var(--font-heading); font-weight: 800; font-size: 2.25rem; letter-spacing: -0.02em; color: var(--text-bright); text-align: center; margin-bottom: 8px;">
+            Deepfake Biometric Scanner
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; text-align: center; margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+            Submit a video file to execute our dual-channel neural scans, separately classifying visual and vocal authenticity.
+        </p>
+
+        <!-- Form Card -->
+        <div class="cyber-card">
+            <form class="form" method="POST" enctype="multipart/form-data" name="video-upload" id="video-upload" style="text-align: left;">
+                {% csrf_token %}
+                
+                <!-- Custom Modern Drag-and-drop Dropzone -->
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label style="font-family: var(--font-heading); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 10px; display: block;">
+                        Target Video Stream
+                    </label>
+                    <div class="premium-dropzone" onclick="document.getElementById('{{form.upload_video_file.id_for_label}}').click();">
+                        <svg class="dropzone-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <div class="dropzone-title" id="file-label-text">Select or Drag Video File</div>
+                        <div class="dropzone-desc">Supports MP4, WebM, AVI, FLV, MKV (Max 100MB)</div>
+                        <div style="display: none;">
+                            {{ form.upload_video_file }}
+                        </div>
+                    </div>
+                    {% if form.upload_video_file.errors %}
+                        {% for each_error in form.upload_video_file.errors %}
+                        <div class="alert alert-danger mt-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #fff; font-size: 0.85rem; padding: 10px 14px;">
+                            {{ each_error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Custom Slider -->
+                <div class="range-container">
+                    <div class="slider-labels">
+                        <span>Analysis Sequence Frame Depth</span>
+                        <span><span class="slider-val-badge" id="slider-value">60</span> frames</span>
+                    </div>
+                    <input type="number" hidden="hidden" id="{{form.sequence_length.id_for_label}}" name="{{form.sequence_length.name}}">
+                    <div id="slider" style="margin-top: 10px;"></div>
+                    
+                    {% if form.sequence_length.errors %}
+                        {% for each_error in form.sequence_length.errors %}
+                        <div class="alert alert-danger mt-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #fff; font-size: 0.85rem; padding: 10px 14px;">
+                            {{ each_error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <button id="videoUpload" type="submit" name="submit" class="submit-btn">
+                    Start Neural Analysis
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Loading Stepper Loader -->
+    <div class="upload-wrapper" id="scanner-container" style="display: none; margin-top: 60px;">
+        <div class="loader-spinner"></div>
+        
+        <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.5rem; color: var(--text-bright); text-align: center; margin-bottom: 8px;">
+            Analyzing Media Stream
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; margin-bottom: 32px;" id="scan-log">
+            Reading video container formats and extracting tracks...
+        </p>
+
+        <!-- Stepper Progress Tracks -->
+        <div class="stepper-container">
+            <div class="stepper-item active" id="step-1">
+                <div class="stepper-icon">1</div>
+                <div class="stepper-content">
+                    <div class="stepper-title">Ingesting Media</div>
+                    <div class="stepper-desc">Reading video stream container and separating channels.</div>
+                </div>
+            </div>
+            <div class="stepper-item" id="step-2">
+                <div class="stepper-icon">2</div>
+                <div class="stepper-content">
+                    <div class="stepper-title">Visual Face Search</div>
+                    <div class="stepper-desc">Tracking facial signatures and extracting temporal frame segments.</div>
+                </div>
+            </div>
+            <div class="stepper-item" id="step-3">
+                <div class="stepper-icon">3</div>
+                <div class="stepper-content">
+                    <div class="stepper-title">Vocal Signature Scan</div>
+                    <div class="stepper-desc">Isolating vocal waveform frequencies and training spectral filters.</div>
+                </div>
+            </div>
+            <div class="stepper-item" id="step-4">
+                <div class="stepper-icon">4</div>
+                <div class="stepper-content">
+                    <div class="stepper-title">Neural Classification</div>
+                    <div class="stepper-desc">Running ResNeXt face check and Yamnet audio signature prediction.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js_cripts %}
+<script src="{% static 'js/script.js' %}"></script>
+<script>
+    $(function () {
+        var sliderSequenceNumbers = [10, 20, 40, 60, 80, 100];
+        
+        // Initial setup
+        var defaultVal = 20; 
+        var defaultIdx = sliderSequenceNumbers.indexOf(defaultVal);
+        if (defaultIdx === -1) defaultIdx = 3; // Fallback to 60 (index 3)
+
+        var slider = $("div#slider").slider({
+            value: defaultIdx,
+            min: 0,
+            max: sliderSequenceNumbers.length - 1,
+            slide: function (event, ui) {
+                var selectedVal = sliderSequenceNumbers[ui.value];
+                $('#{{form.sequence_length.id_for_label}}').val(selectedVal);
+                $('#slider-value').html(selectedVal);
+            }
+        });
+        
+        // Set initial values
+        $("#{{form.sequence_length.id_for_label}}").val(sliderSequenceNumbers[slider.slider("value")]);
+        $('#slider-value').html(sliderSequenceNumbers[slider.slider("value")]);
+
+        // Intercept file picker changes to render standard short names
+        $('#{{form.upload_video_file.id_for_label}}').on('change', function(e) {
+            var file = e.target.files[0];
+            if (file) {
+                var name = file.name;
+                if (name.length > 25) {
+                    name = name.substring(0, 22) + "...";
+                }
+                $('#file-label-text').text(name).css('color', 'var(--accent-blue)');
+            }
+        });
+
+        // Trigger loading screen with interactive steppers
+        $('#video-upload').on('submit', function() {
+            if ($('#{{form.upload_video_file.id_for_label}}').val()) {
+                $('#form-container').fadeOut(400, function() {
+                    $('#scanner-container').fadeIn(400);
+                    
+                    var stepperSteps = [
+                        { step: 1, log: "Reading video container and separating channels..." },
+                        { step: 2, log: "Extracting temporal segments and crop mapping face tags..." },
+                        { step: 3, log: "Extracting vocals and building amplitude waveforms..." },
+                        { step: 4, log: "Running parallel neural networks on separated audio & video..." }
+                    ];
+                    
+                    var currentStepIdx = 0;
+                    var intervalId = setInterval(function() {
+                        if (currentStepIdx < stepperSteps.length) {
+                            var stepData = stepperSteps[currentStepIdx];
+                            
+                            // Set log message
+                            $('#scan-log').text(stepData.log);
+                            
+                            // Advance active steps
+                            $('.stepper-item').removeClass('active');
+                            for (var s = 1; s <= stepData.step; s++) {
+                                if (s < stepData.step) {
+                                    $('#step-' + s).addClass('done');
+                                } else {
+                                    $('#step-' + s).addClass('active');
+                                }
+                            }
+                            currentStepIdx++;
+                        } else {
+                            clearInterval(intervalId);
+                        }
+                    }, 2200);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

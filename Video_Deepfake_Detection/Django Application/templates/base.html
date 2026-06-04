@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sentry | Advanced Deepfake Detection Platform</title>
+</head>
+<body>
+    {% include 'nav-bar.html' %}
+    
+    <div style="min-height: calc(100vh - 180px); padding-bottom: 60px;">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/popper.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+    
+    {% block js_cripts %}
+    {% endblock %}
+</body>
+</html>
