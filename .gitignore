@@ -25,11 +25,20 @@ local_settings.py
 *.pt
 *.onnx
 *.h5
+models/model_*.pt
+
+# Exclude variables and pb files globally except for the YAMNet classifier
 *.pb
 variables/
 assets/
 ann_human_or_bot/
-models/model_*.pt
+
+# Explicitly track the small YAMNet model
+!Audio_Deepfake_Detection/API/app/src/artifact/ann_human_or_bot/
+!Audio_Deepfake_Detection/API/app/src/artifact/ann_human_or_bot/saved_model.pb
+!Audio_Deepfake_Detection/API/app/src/artifact/ann_human_or_bot/fingerprint.pb
+!Audio_Deepfake_Detection/API/app/src/artifact/ann_human_or_bot/variables/
+!Audio_Deepfake_Detection/API/app/src/artifact/ann_human_or_bot/variables/*
 
 # Media and temporary upload directories
 Video_Deepfake_Detection/Django Application/uploaded_videos/*
