@@ -11,6 +11,17 @@
 ---
 
 ## 📸 Interface Preview
+<img width="832" height="833" alt="Screenshot 2026-06-05 010650" src="https://github.com/user-attachments/assets/ee4975e3-5a90-4e85-8358-5def78021a30" />
+
+<img width="1427" height="856" alt="Screenshot 2026-06-05 010912" src="https://github.com/user-attachments/assets/193bc613-4d79-44fa-b306-c4066fdf1572" />
+
+<img width="1402" height="640" alt="Screenshot 2026-06-05 010932" src="https://github.com/user-attachments/assets/662b9661-6fed-4f07-a27a-9da439d56a8f" />
+
+<img width="1494" height="836" alt="Screenshot 2026-06-05 010950" src="https://github.com/user-attachments/assets/20bb8d55-c71c-48a9-b567-106656d8d8b1" />
+
+
+
+
 Sentry features a highly-responsive, modern dark-mode user interface designed for intuitive, seamless analysis:
 - **Target Video Stream Drop-zone**: Supports MP4, WebM, AVI, FLV, and MKV with adjustable frame-depth configuration.
 - **Biometric Timeline Analysis**: High-precision frame extraction and biometric face cropping.
