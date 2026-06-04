@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django files
+db.sqlite3
+db.sqlite3-journal
+*.log
+local_settings.py
+
+# Machine Learning weights & models (avoid pushing large models >100MB to GitHub)
+*.pt
+*.onnx
+*.h5
+*.pb
+variables/
+assets/
+ann_human_or_bot/
+models/model_*.pt
+
+# Media and temporary upload directories
+Video_Deepfake_Detection/Django Application/uploaded_videos/*
+!Video_Deepfake_Detection/Django Application/uploaded_videos/.gitkeep
+Video_Deepfake_Detection/Django Application/uploaded_images/*
+!Video_Deepfake_Detection/Django Application/uploaded_images/.gitkeep
+
+# Temporary audio extractions and test assets
+*.wav
+*.mp3
+*.temp.wav
+test_extracted.wav
+Video_Deepfake_Detection/Django Application/test_extracted.wav
+
+# IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
