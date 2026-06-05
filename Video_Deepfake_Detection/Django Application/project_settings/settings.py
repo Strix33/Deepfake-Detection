@@ -23,6 +23,12 @@ DEBUG = True
 # Change and set this to correct IP/Domain
 ALLOWED_HOSTS = ["*"]
 
+# Trusted origins for CSRF — required when running behind a proxy (e.g. Hugging Face Spaces)
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.hf.space",
+    "https://strix68-deepfake-detection.hf.space",
+]
+
 
 # Application definition
 
