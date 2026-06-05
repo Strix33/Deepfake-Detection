@@ -23,11 +23,19 @@ DEBUG = True
 # Change and set this to correct IP/Domain
 ALLOWED_HOSTS = ["*"]
 
-# Trusted origins for CSRF — required when running behind a proxy (e.g. Hugging Face Spaces)
+# ── Proxy / Hugging Face Spaces settings ────────────────────────────────────
+# HF Spaces runs Django behind an HTTPS reverse proxy.
+# CSRF_TRUSTED_ORIGINS tells Django to accept the hf.space origin.
+# SECURE_PROXY_SSL_HEADER + USE_X_FORWARDED_HOST make Django aware of the proxy.
 CSRF_TRUSTED_ORIGINS = [
     "https://*.hf.space",
     "https://strix68-deepfake-detection.hf.space",
+    "http://localhost",
+    "http://127.0.0.1",
 ]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+# ────────────────────────────────────────────────────────────────────────────
 
 
 # Application definition
