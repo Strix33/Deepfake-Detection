@@ -1,0 +1,16 @@
+.git
+.venv
+venv
+ENV
+env
+.vscode
+.idea
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+Video_Deepfake_Detection/Django Application/uploaded_images/*
+!Video_Deepfake_Detection/Django Application/uploaded_images/.gitkeep
+Video_Deepfake_Detection/Django Application/uploaded_videos/*
+!Video_Deepfake_Detection/Django Application/uploaded_videos/.gitkeep
