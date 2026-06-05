@@ -3,6 +3,7 @@ venv
 .vscode
 models/*
 !models/Readme.txt
+!models/*.pt
 uploaded_images/*
 !uploaded_images/Readme.txt
 uploaded_videos/*

@@ -302,14 +302,17 @@ def predict_audio_deepfake(video_path):
         
         extracted_wav_path = video_path + ".temp.wav"
         
-        # Run ffmpeg to extract mono 16kHz WAV for analysis
+        # Extract raw PCM at native sample rate — let librosa handle resampling
+        # to exactly match the training notebook's preprocessing pipeline.
+        # (Training used: librosa.load(path, sr=16000) directly on the audio file)
         subprocess.run([
             ffmpeg_exe, '-y', '-i', video_path,
-            '-vn', '-acodec', 'pcm_s16le', '-ar', '16000', '-ac', '1',
+            '-vn', '-acodec', 'pcm_s16le',
             extracted_wav_path
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         
-        sound_sample, sr = librosa.load(extracted_wav_path, sr=16000)
+        # librosa resamples to 16kHz mono — same as training preprocessing
+        sound_sample, sr = librosa.load(extracted_wav_path, sr=16000, mono=True)
         print("Audio loaded successfully. Length:", len(sound_sample))
 
         # Cleanup the temp WAV file

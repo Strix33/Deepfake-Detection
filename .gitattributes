@@ -1,0 +1,1 @@
+Video_Deepfake_Detection/Django[[:space:]]Application/models/*.pt filter=lfs diff=lfs merge=lfs -text

@@ -11,22 +11,34 @@
 ---
 
 ## 📸 Interface Preview
-<img width="832" height="833" alt="Screenshot 2026-06-05 010650" src="https://github.com/user-attachments/assets/ee4975e3-5a90-4e85-8358-5def78021a30" />
+Sentry features a highly-responsive, modern dark-mode user interface designed for intuitive, seamless analysis. Below is a walkthrough of the platform's core interface elements:
 
-<img width="1427" height="856" alt="Screenshot 2026-06-05 010912" src="https://github.com/user-attachments/assets/193bc613-4d79-44fa-b306-c4066fdf1572" />
+### 1. Intake Dashboard & Biometric Scanner
+The entry point of the application where users can select or drag-and-drop video files (supporting MP4, WebM, AVI, FLV, and MKV up to 100MB) and adjust the analysis sequence frame depth using an interactive slider.
 
-<img width="1402" height="640" alt="Screenshot 2026-06-05 010932" src="https://github.com/user-attachments/assets/662b9661-6fed-4f07-a27a-9da439d56a8f" />
+<img width="832" height="833" alt="Intake Dashboard & Biometric Scanner" src="https://github.com/user-attachments/assets/ee4975e3-5a90-4e85-8358-5def78021a30" />
 
-<img width="1494" height="836" alt="Screenshot 2026-06-05 010950" src="https://github.com/user-attachments/assets/20bb8d55-c71c-48a9-b567-106656d8d8b1" />
+---
 
+### 2. Video Analysis Report
+Once neural analysis is executed, Sentry displays a detailed visual classification report highlighting confidence scores (e.g., 97.7% AI Synthetic), specific facial landmark sequence anomalies, and temporal inconsistency scores.
 
+<img width="1427" height="856" alt="Video Analysis Report" src="https://github.com/user-attachments/assets/193bc613-4d79-44fa-b306-c4066fdf1572" />
 
+---
 
-Sentry features a highly-responsive, modern dark-mode user interface designed for intuitive, seamless analysis:
-- **Target Video Stream Drop-zone**: Supports MP4, WebM, AVI, FLV, and MKV with adjustable frame-depth configuration.
-- **Biometric Timeline Analysis**: High-precision frame extraction and biometric face cropping.
-- **Acoustic Waveform Inspection**: Dynamic audio player highlighting suspected synthetic voice segments.
-- **Spectral Findings Summary**: Categorized anomalies, pitch irregularities, and formant density analysis.
+### 3. Biometric Crops & Temporal Frame Timeline
+A granular visual timeline showing the sequence of temporal frames extracted from the video, alongside the individual cropped face snapshots analyzed by the Haar Cascade and ResNeXt50 network.
+
+<img width="1402" height="640" alt="Biometric Crops & Temporal Frame Timeline" src="https://github.com/user-attachments/assets/662b9661-6fed-4f07-a27a-9da439d56a8f" />
+
+---
+
+### 4. Audio/Vocal Analysis Report
+Switching to the Audio Analysis channel reveals the acoustic neural verification score (e.g., 73.3% Authentic) and maps out the vocal timeline using a waveform visualizer that highlights suspected synthetic segments in red.
+
+<img width="1494" height="836" alt="Audio/Vocal Analysis Report" src="https://github.com/user-attachments/assets/20bb8d55-c71c-48a9-b567-106656d8d8b1" />
+
 
 ---
 

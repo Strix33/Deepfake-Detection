@@ -26,6 +26,8 @@ local_settings.py
 *.onnx
 *.h5
 models/model_*.pt
+!Video_Deepfake_Detection/Django Application/models/model_*.pt
+
 
 # Exclude variables and pb files globally except for the YAMNet classifier
 *.pb
